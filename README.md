@@ -94,3 +94,6 @@ different way; and then call those functions from your target string.
 	resolution is at each point in time.
 * Be mathematically/logically correct by default ("nil+123" should be "nil" not
   "123", though the functions could get a "sloppyness" argument)
+
+# Community
+  meet us in `#graphite-ng` on freenode
