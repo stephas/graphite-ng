@@ -11,18 +11,35 @@ import (
 	"strings"
 )
 
-func GetTextMetricPath(name string) string {
-	return fmt.Sprintf("text_metrics/%s.txt", name)
+func (t *TextStore) path(name string) string {
+	return fmt.Sprintf("%s/%s.txt", t.BasePath, name)
 }
 
-func IsTextMetric(name string) (found bool, err error) {
-	_, err = os.Stat(GetTextMetricPath(name))
+func (t *TextStore) Add(metrics.Metric) (err error) {
+	panic("todo")
+}
+
+func (t *TextStore) Has(name string) (found bool, err error) {
+	_, err = os.Stat(t.path(name))
 	return (err == nil), nil
 }
 
-func ReadTextMetric(name string) (our_el *chains.ChainEl, err error) {
+type TextStore struct {
+	BasePath string
+}
+
+func NewTextStore() *TextStore {
+	return &TextStore{"text_metrics"}
+}
+
+func init() {
+	store := NewTextStore()
+	List = append(List, store)
+}
+
+func (t *TextStore) Get(name string) (our_el *chains.ChainEl, err error) {
 	var file *os.File
-	path := GetTextMetricPath(name)
+	path := t.path(name)
 	if file, err = os.Open(path); err != nil {
 		return nil, err
 	}

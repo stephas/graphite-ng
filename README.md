@@ -11,14 +11,23 @@ annoyances.
 # Limitations
 
  * Not all functions are supported yet
- * No reinventing whisper/ceres at this point. (I want to hook this up to a
-   reliable timeseries store, maybe
+ * No wildcards yet
+ * No support for whisper/ceres (see below)
+
+# Backend stores
+
+Graphite-ng will support multiple stores.  It aims to use
+a storage system that can easily scale from a few metrics on my laptop to millions of metrics on a cluster;
+something that automatically balances the load, assures HA and heals itself in case of disk of node failures.
+Whisper and ceres are older formats for graphite that are simple but inefficient and become hard to manage when scaling out.
+Right now it aims to primarily use influxdb.
+
+ * other options:
    [whisper](https://github.com/graphite-project/whisper),
    [ceres](https://github.com/graphite-project/ceres),
    [kairosdb](https://code.google.com/p/kairosdb/), ...). (there's a
    `carbon-es` dir which is a carbon-cache that stores metrics in
    elasticsearch, but I'm still experimenting with it)
- * No wildcards yet
 
 # Omissions
 

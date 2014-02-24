@@ -32,7 +32,12 @@ func NewEs(path string) *Es {
 	return &Es{*es_host, *es_port, *es_max_pending, *in_port}
 }
 
-func IsEsMetric(name string) (found bool, err error) {
+func init() {
+	store := NewEs(".")
+	List = append(List, store)
+}
+
+func (e *Es) Has(name string) (found bool, err error) {
 	out, err := core.SearchUri("carbon-es", "datapoint", fmt.Sprintf("metric:%s&size=1", name), "", 0)
 	if err != nil {
 		return false, errors.New(fmt.Sprintf("error checking ES for %s: %s", name, err.Error()))
@@ -40,7 +45,7 @@ func IsEsMetric(name string) (found bool, err error) {
 	return (out.Hits.Total > 0), nil
 }
 
-func ReadEsMetric(name string) (our_el *chains.ChainEl, err error) {
+func (e *Es) Get(name string) (our_el *chains.ChainEl, err error) {
 	our_el = chains.NewChainEl()
 	go func(our_el *chains.ChainEl) {
 		from := <-our_el.Settings
