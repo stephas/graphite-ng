@@ -1,13 +1,13 @@
 package stores
 
 import (
+	"../config"
+	"../metrics"
 	"errors"
 	"fmt"
 	"github.com/graphite-ng/graphite-ng/chains"
-	"github.com/graphite-ng/graphite-ng/util"
 	"github.com/mattbaird/elastigo/api"
 	"github.com/mattbaird/elastigo/core"
-	"github.com/stvp/go-toml-config"
 	"strconv"
 )
 
@@ -18,25 +18,21 @@ type Es struct {
 	in_port        int
 }
 
-func NewEs(path string) *Es {
-	var (
-		es_host        = config.String("elasticsearch.host", "undefined")
-		es_port        = config.Int("elasticsearch.port", 9200)
-		es_max_pending = config.Int("elasticsearch.max_pending", 1000000)
-		in_port        = config.Int("in.port", 2003)
-	)
-	err := config.Parse(path)
-	util.DieIfError(err)
-	api.Domain = *es_host
-	api.Port = strconv.Itoa(*es_port)
-	return &Es{*es_host, *es_port, *es_max_pending, *in_port}
+func NewEs(config config.Main) *Es {
+	api.Domain = config.StoreES.Host
+	api.Port = string(config.StoreES.Port)
+	es := Es{config.StoreES.Host, config.StoreES.Port, config.StoreES.MaxPending, config.StoreES.CarbonPort}
+	return &(es.(Store))
 }
 
 func init() {
-	store := NewEs(".")
-	List = append(List, store)
+	InitFn["es"] = NewEs
 }
 
+func (e *Es) Add(metric metrics.Metric) (err error) {
+	panic("todo")
+	return nil
+}
 func (e *Es) Has(name string) (found bool, err error) {
 	out, err := core.SearchUri("carbon-es", "datapoint", fmt.Sprintf("metric:%s&size=1", name), "", 0)
 	if err != nil {

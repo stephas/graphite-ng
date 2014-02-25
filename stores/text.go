@@ -1,6 +1,7 @@
 package stores
 
 import (
+	"../config"
 	"bufio"
 	"errors"
 	"fmt"
@@ -14,8 +15,7 @@ import (
 func (t *TextStore) path(name string) string {
 	return fmt.Sprintf("%s/%s.txt", t.BasePath, name)
 }
-
-func (t *TextStore) Add(metrics.Metric) (err error) {
+func (t *TextStore) Add(metric metrics.Metric) (err error) {
 	panic("todo")
 }
 
@@ -28,13 +28,12 @@ type TextStore struct {
 	BasePath string
 }
 
-func NewTextStore() *TextStore {
+func NewTextStore(config config.Main) *TextStore {
 	return &TextStore{"text_metrics"}
 }
 
 func init() {
-	store := NewTextStore()
-	List = append(List, store)
+	InitFn["text"] = NewTextStore
 }
 
 func (t *TextStore) Get(name string) (our_el *chains.ChainEl, err error) {

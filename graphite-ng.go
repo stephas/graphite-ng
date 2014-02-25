@@ -1,9 +1,13 @@
 package main
 
 import (
+	"./config"
+	"./util"
 	"bytes"
 	"fmt"
+	"github.com/BurntSushi/toml"
 	"github.com/graphite-ng/graphite-ng/functions"
+
 	"go/scanner"
 	"go/token"
 	"math/rand"
@@ -158,10 +162,25 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	var config config.Main
+	if _, err := toml.DecodeFile("graphite-ng.conf", &config); err != nil {
+		fmt.Println(err)
+		return
+	}
 	fmt.Println("registered functions:")
 	for k, v := range functions.Functions {
 		fmt.Printf("%-20s -> %s\n", k, v)
 	}
+	stores := make(map[string]*Store)
+	for key := range config.Stores {
+		if constructor, ok := stores.InitFn[key]; ok {
+			fmt.Println("loading backned", key)
+			stores[key] = constructor(config)
+		} else {
+			fmt.Println("no such store: " + key)
+		}
+	}
+
 	http.HandleFunc("/render/", renderHandler)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(config.ListenAddr, nil)
 }

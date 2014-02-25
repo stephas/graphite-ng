@@ -1,14 +1,14 @@
 package stores
 
 import (
+	"../config"
 	"../util"
 	"github.com/graphite-ng/graphite-ng/chains"
 	"github.com/graphite-ng/graphite-ng/metrics"
 	"github.com/influxdb/influxdb-go"
-	"github.com/stvp/go-toml-config"
 )
 
-func (i *InfluxdbStore) Add(metrics.Metric) (err error) {
+func (i *InfluxdbStore) Add(metric metrics.Metric) (err error) {
 	panic("todo")
 }
 
@@ -20,24 +20,15 @@ type InfluxdbStore struct {
 	client *influxdb.Client
 }
 
-func NewInfluxStore() *InfluxdbStore {
-	var (
-		host     = config.String("influxdb.host", "undefined")
-		username = config.String("influxdb.username", "undefined")
-		password = config.String("influxdb.password", "undefined")
-		database = config.String("influxdb.database", "undefined")
-	)
-	err := config.Parse("graphite-ng.conf")
+func NewInfluxStore(config config.Main) *InfluxdbStore {
+	c := influxdb.ClientConfig{config.StoreInflux.Host, config.StoreInflux.Username, config.StoreInflux.Password, config.StoreInflux.Database}
+	client, err := influxdb.NewClient(&c)
 	util.DieIfError(err)
-	config := influxdb.ClientConfig{*host, *username, *password, *database}
-	client, err := influxdb.NewClient(&config)
-	util.DieIfError(err)
-	return &InfluxdbStore{client}
+	return &(InfluxdbStore{client}.(Store))
 }
 
 func init() {
-	store := NewTextStore()
-	List = append(List, store)
+	InitFn["influx"] = NewInfluxStore
 }
 
 func (t *InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {

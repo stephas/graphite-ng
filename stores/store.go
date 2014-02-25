@@ -2,14 +2,15 @@ package stores
 
 import (
 	"../chains"
+	"../config"
 	"../metrics"
 )
 
-var List []interface{}
+var InitFn map[string]func(config config.Main) //*Store
 
 type Store interface {
-	Add(metrics.Metric) (err error)
+	Add(metric metrics.Metric) (err error)
 	//List(<- chan string)
-	Get(string) (our_el *chains.ChainEl, err error)
+	Get(name string) (our_el *chains.ChainEl, err error)
 	Has(name string) (found bool, err error)
 }
