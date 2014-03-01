@@ -1,8 +1,8 @@
 package functions
 
 import (
+	"../chains"
 	"fmt"
-	"github.com/graphite-ng/graphite-ng/chains"
 )
 
 func init() {

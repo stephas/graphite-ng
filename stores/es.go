@@ -1,11 +1,11 @@
 package stores
 
 import (
+	"../chains"
 	"../config"
 	"../metrics"
 	"errors"
 	"fmt"
-	"github.com/graphite-ng/graphite-ng/chains"
 	"github.com/mattbaird/elastigo/api"
 	"github.com/mattbaird/elastigo/core"
 	"strconv"

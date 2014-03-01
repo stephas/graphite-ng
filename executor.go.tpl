@@ -1,9 +1,8 @@
 package main
 import (
     "fmt"
-	"github.com/graphite-ng/graphite-ng/chains"
-    "github.com/graphite-ng/graphite-ng/functions"
-
+	"./chains"
+    "./functions"
 )
 
 func main () {

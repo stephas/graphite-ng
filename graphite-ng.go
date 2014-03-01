@@ -2,11 +2,10 @@ package main
 
 import (
 	"./config"
-	"./util"
+	"./functions"
 	"bytes"
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"github.com/graphite-ng/graphite-ng/functions"
 
 	"go/scanner"
 	"go/token"
