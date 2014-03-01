@@ -1,37 +1,33 @@
 package stores
 
 import (
+	"../chains"
 	"../config"
+	"../metrics"
 	"../util"
-	"github.com/graphite-ng/graphite-ng/chains"
-	"github.com/graphite-ng/graphite-ng/metrics"
 	"github.com/influxdb/influxdb-go"
 )
-
-func (i *InfluxdbStore) Add(metric metrics.Metric) (err error) {
-	panic("todo")
-}
-
-func (i *InfluxdbStore) Has(name string) (found bool, err error) {
-	panic("todo")
-}
 
 type InfluxdbStore struct {
 	client *influxdb.Client
 }
 
-func NewInfluxStore(config config.Main) *InfluxdbStore {
+func NewInfluxStore(config config.Main) Store {
 	c := influxdb.ClientConfig{config.StoreInflux.Host, config.StoreInflux.Username, config.StoreInflux.Password, config.StoreInflux.Database}
 	client, err := influxdb.NewClient(&c)
 	util.DieIfError(err)
-	return &(InfluxdbStore{client}.(Store))
+	return InfluxdbStore{client}
 }
 
 func init() {
 	InitFn["influx"] = NewInfluxStore
 }
 
-func (t *InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {
+func (i InfluxdbStore) Add(metric metrics.Metric) (err error) {
+	panic("todo")
+}
+
+func (t InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {
 
 	our_el = chains.NewChainEl()
 	go func(our_el *chains.ChainEl) {
@@ -72,4 +68,8 @@ func (t *InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {
 		}
 	}(our_el)
 	return our_el, nil
+}
+
+func (i InfluxdbStore) Has(name string) (found bool, err error) {
+	panic("todo")
 }

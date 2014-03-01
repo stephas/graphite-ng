@@ -170,15 +170,6 @@ func main() {
 	for k, v := range functions.Functions {
 		fmt.Printf("%-20s -> %s\n", k, v)
 	}
-	stores := make(map[string]*Store)
-	for key := range config.Stores {
-		if constructor, ok := stores.InitFn[key]; ok {
-			fmt.Println("loading backned", key)
-			stores[key] = constructor(config)
-		} else {
-			fmt.Println("no such store: " + key)
-		}
-	}
 
 	http.HandleFunc("/render/", renderHandler)
 	http.ListenAndServe(config.ListenAddr, nil)

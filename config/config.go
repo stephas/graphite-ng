@@ -1,21 +1,18 @@
 package config
 
 type Main struct {
-	Web         webInfo
-	StoreES     storeElasticsearchInfo
-	StoreInflux storeInfluxdbInfo
+	ListenAddr  string `toml:"listen_addr"`
 	Stores      []string
-}
-
-type webInfo struct {
-	ListenAddr string
+	StoreES     storeElasticsearchInfo `toml:"store_elasticsearch"`
+	StoreInflux storeInfluxdbInfo      `toml:"store_influxdb"`
+	StoreText   storeTextInfo          `toml:"store_text"`
 }
 
 type storeElasticsearchInfo struct {
 	Host       string
 	Port       int
-	MaxPending int
-	CarbonPort int
+	MaxPending int `toml:"max_pending"`
+	CarbonPort int `toml:"carbon_port"`
 }
 
 type storeInfluxdbInfo struct {
@@ -23,4 +20,8 @@ type storeInfluxdbInfo struct {
 	Username string
 	Password string
 	Database string
+}
+
+type storeTextInfo struct {
+	Path string
 }

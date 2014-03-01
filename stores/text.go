@@ -15,28 +15,25 @@ import (
 func (t *TextStore) path(name string) string {
 	return fmt.Sprintf("%s/%s.txt", t.BasePath, name)
 }
-func (t *TextStore) Add(metric metrics.Metric) (err error) {
-	panic("todo")
-}
-
-func (t *TextStore) Has(name string) (found bool, err error) {
-	_, err = os.Stat(t.path(name))
-	return (err == nil), nil
-}
 
 type TextStore struct {
 	BasePath string
 }
 
-func NewTextStore(config config.Main) *TextStore {
-	return &TextStore{"text_metrics"}
+func NewTextStore(config config.Main) Store {
+	path := config.StoreText.Path
+	return TextStore{path}
 }
 
 func init() {
 	InitFn["text"] = NewTextStore
 }
 
-func (t *TextStore) Get(name string) (our_el *chains.ChainEl, err error) {
+func (t TextStore) Add(metric metrics.Metric) (err error) {
+	panic("todo")
+}
+
+func (t TextStore) Get(name string) (our_el *chains.ChainEl, err error) {
 	var file *os.File
 	path := t.path(name)
 	if file, err = os.Open(path); err != nil {
@@ -82,4 +79,10 @@ func (t *TextStore) Get(name string) (our_el *chains.ChainEl, err error) {
 		}
 	}(our_el, metric)
 	return our_el, nil
+}
+
+func (t TextStore) Has(name string) (found bool, err error) {
+	fmt.Println(t.path(name))
+	_, err = os.Stat(t.path(name))
+	return (err == nil), nil
 }

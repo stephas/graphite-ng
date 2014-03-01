@@ -3,6 +3,9 @@ import (
     "fmt"
 	"./chains"
     "./functions"
+    "./config"
+    "./stores"
+    "github.com/BurntSushi/toml"
 )
 
 func main () {

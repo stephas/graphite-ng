@@ -18,30 +18,23 @@ type Es struct {
 	in_port        int
 }
 
-func NewEs(config config.Main) *Es {
+func NewEs(config config.Main) Store {
 	api.Domain = config.StoreES.Host
 	api.Port = string(config.StoreES.Port)
 	es := Es{config.StoreES.Host, config.StoreES.Port, config.StoreES.MaxPending, config.StoreES.CarbonPort}
-	return &(es.(Store))
+	return es
 }
 
 func init() {
 	InitFn["es"] = NewEs
 }
 
-func (e *Es) Add(metric metrics.Metric) (err error) {
+func (e Es) Add(metric metrics.Metric) (err error) {
 	panic("todo")
 	return nil
 }
-func (e *Es) Has(name string) (found bool, err error) {
-	out, err := core.SearchUri("carbon-es", "datapoint", fmt.Sprintf("metric:%s&size=1", name), "", 0)
-	if err != nil {
-		return false, errors.New(fmt.Sprintf("error checking ES for %s: %s", name, err.Error()))
-	}
-	return (out.Hits.Total > 0), nil
-}
 
-func (e *Es) Get(name string) (our_el *chains.ChainEl, err error) {
+func (e Es) Get(name string) (our_el *chains.ChainEl, err error) {
 	our_el = chains.NewChainEl()
 	go func(our_el *chains.ChainEl) {
 		from := <-our_el.Settings
@@ -83,4 +76,12 @@ func (e *Es) Get(name string) (our_el *chains.ChainEl, err error) {
 		fmt.Println(out)
 	}(our_el)
 	return our_el, nil
+}
+
+func (e Es) Has(name string) (found bool, err error) {
+	out, err := core.SearchUri("carbon-es", "datapoint", fmt.Sprintf("metric:%s&size=1", name), "", 0)
+	if err != nil {
+		return false, errors.New(fmt.Sprintf("error checking ES for %s: %s", name, err.Error()))
+	}
+	return (out.Hits.Total > 0), nil
 }
