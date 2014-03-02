@@ -9,8 +9,7 @@ import (
 func ReadMetric(name string) (our_el chains.ChainEl) {
 	var found bool
 	var err error
-	for k, store := range stores.List {
-		fmt.Println("looking in", k)
+	for _, store := range stores.List {
 		found, err = (*store).Has(name)
 		if err != nil {
 			panic(fmt.Sprintf("Error checking store %s for %s: %s", store, name, err))
