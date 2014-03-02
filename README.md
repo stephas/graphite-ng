@@ -38,12 +38,13 @@ Other candidates that you could hack on if you're interested
  * Currently only a small set of functions are supported. (see `data.go` and the `functions/` dir.)
  * No wildcards yet
  * Metric identifiers must at least contain 1 dot
+ * From/until paramaters can only be in unix timestamp format. (luckily most dashboards abstract this away nicely)
 
 # How it works
 
 `graphite-ng` is a webserver that gives you a `/render/` http endpoint where
 you can do queries like
-`/render/?target=sum(test.metric1.txt,scale(test.metric2.txt,5.2))&from=123&until=456`
+`/render/?target=sum(test.metric1,scale(test.metric2,5.2))&from=123&until=456`
 
 `graphite-ng` converts all user input into a real, functioning Go program,
 compiles and runs it, and returns the output. It can do this because the
@@ -62,8 +63,8 @@ Run this from the code checkout:
 
 Then open something like this in your browser:
 
-    http://localhost:8080/render/?target=test.metric2.txt&target=derivative(test.metric1.txt)
-    http://localhost:8080/render/?target=sum(test.metric1.txt,scale(test.metric2.txt,5))&from=60&until=300
+    http://localhost:8080/render/?target=test.metric2&target=derivative(test.metric1)
+    http://localhost:8080/render/?target=sum(test.metric1,scale(test.metric2,5))&from=60&until=300
 
 These test metrics are available by default through the text store.  You'll probably want
 to add your real metrics into influxdb.  Which, by the way, is [really easy](http://influxdb.org/docs/) to install.
