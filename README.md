@@ -43,7 +43,7 @@ Other candidates that you could hack on if you're interested
 
 `graphite-ng` is a webserver that gives you a `/render/` http endpoint where
 you can do queries like
-`/render/sum(test.metric1.txt,scale(test.metric2.txt,5.2))from=123&until=456`
+`/render/?target=sum(test.metric1.txt,scale(test.metric2.txt,5.2))&from=123&until=456`
 
 `graphite-ng` converts all user input into a real, functioning Go program,
 compiles and runs it, and returns the output. It can do this because the
