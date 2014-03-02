@@ -26,7 +26,7 @@ func NewEs(config config.Main) Store {
 }
 
 func init() {
-	InitFn["es"] = NewEs
+	InitFn["elasticsearch"] = NewEs
 }
 
 func (e Es) Add(metric metrics.Metric) (err error) {

@@ -1,8 +1,8 @@
 package config
 
 type Main struct {
-	ListenAddr  string `toml:"listen_addr"`
-	Stores      []string
+	ListenAddr  string                 `toml:"listen_addr"`
+	Stores      []string               `toml:"stores"`
 	StoreES     storeElasticsearchInfo `toml:"store_elasticsearch"`
 	StoreInflux storeInfluxdbInfo      `toml:"store_influxdb"`
 	StoreText   storeTextInfo          `toml:"store_text"`

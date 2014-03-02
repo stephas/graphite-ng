@@ -13,6 +13,7 @@ annoyances.
  * Not all functions are supported yet
  * No wildcards yet
  * No support for whisper/ceres (see below)
+ * Metric identifiers must at least contain 1 dot
 
 # Backend stores
 

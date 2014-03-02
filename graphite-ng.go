@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/BurntSushi/toml"
-
 	"go/scanner"
 	"go/token"
 	"math/rand"
@@ -15,6 +14,7 @@ import (
 	"os/exec"
 	"strconv"
 	"text/template"
+	"time"
 )
 
 type Token struct {
@@ -114,19 +114,20 @@ func renderJson(targets_list []string, from int32, until int32) string {
 	cmd_exec.Stdout = &stdout
 	cmd_exec.Stderr = &stderr
 	err = cmd_exec.Run()
-	if err != nil {
-		fmt.Printf("error:", err)
-	}
 	if stderr.Len() > 0 {
-		fmt.Printf("sterr:", stderr.String())
-		return stderr.String()
+		fmt.Println("stdout:", stdout.String())
+		fmt.Println("sterr:", stderr.String())
 	}
-	return stdout.String()
+	if err != nil {
+		fmt.Println("error:", err)
+		return stdout.String() + "\nERRORS:" + stderr.String() + "\n" + err.Error()
+	}
+	return stdout.String() + "\n" + stderr.String()
 }
 
 func renderHandler(w http.ResponseWriter, r *http.Request) {
-	from := int32(0)
-	until := int32(360)
+	until := int32(time.Now().Unix())
+	from := until - 24*60*60
 	r.ParseForm()
 	from_list := r.Form["from"]
 	if len(from_list) > 0 {

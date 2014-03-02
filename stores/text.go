@@ -5,7 +5,6 @@ import (
 	"../config"
 	"../metrics"
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -34,50 +33,52 @@ func (t TextStore) Add(metric metrics.Metric) (err error) {
 }
 
 func (t TextStore) Get(name string) (our_el *chains.ChainEl, err error) {
-	var file *os.File
-	path := t.path(name)
-	if file, err = os.Open(path); err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	datapoints := make([]*metrics.Datapoint, 0)
-	for scanner.Scan() {
-		line := scanner.Text()
-		parts := strings.Split(line, " ")
-		ts, _ := strconv.ParseInt(parts[0], 10, 32)
-		val, _ := strconv.ParseFloat(parts[1], 64)
-		known, _ := strconv.ParseBool(parts[2])
-		dp := metrics.NewDatapoint(int32(ts), val, known)
-		datapoints = append(datapoints, dp)
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, errors.New(fmt.Sprintf("error reading %s: %s", path, err.Error()))
-	}
-	metric := metrics.NewMetric(name, datapoints)
-
 	our_el = chains.NewChainEl()
-	go func(our_el *chains.ChainEl, metric *metrics.Metric) {
+
+	go func(our_el *chains.ChainEl) {
+		var file *os.File
+		path := t.path(name)
+		if file, err = os.Open(path); err != nil {
+			panic(err)
+		}
+		defer file.Close()
 		from := <-our_el.Settings
 		until := <-our_el.Settings
-		// if we don't have enough data to cover the requested timespan, fill with nils
-		if metric.Data[0].Ts > from {
-			for new_ts := from; new_ts < metric.Data[0].Ts; new_ts += 60 {
+
+		scanner := bufio.NewScanner(file)
+		first := true
+		// this will be used to fill the potential gap between last datapoint and until,
+		// but also if there were no (matching) datapoints in the file at all.
+		last_ts := from - 60
+		for scanner.Scan() {
+			line := scanner.Text()
+			parts := strings.Split(line, " ")
+			ts, _ := strconv.ParseInt(parts[0], 10, 32)
+			val, _ := strconv.ParseFloat(parts[1], 64)
+			known, _ := strconv.ParseBool(parts[2])
+			dp := metrics.NewDatapoint(int32(ts), val, known)
+			if first {
+				if from < dp.Ts {
+					for new_ts := from; new_ts < dp.Ts; new_ts += 60 {
+						our_el.Link <- *metrics.NewDatapoint(new_ts, 0.0, false)
+					}
+				}
+			}
+			if dp.Ts >= from && dp.Ts <= until {
+				our_el.Link <- *dp
+				last_ts = dp.Ts
+			}
+			first = false
+		}
+		if err := scanner.Err(); err != nil {
+			panic(fmt.Sprintf("error reading %s: %s", path, err.Error()))
+		}
+		if last_ts < until {
+			for new_ts := last_ts + 60; new_ts <= until+60; new_ts += 60 {
 				our_el.Link <- *metrics.NewDatapoint(new_ts, 0.0, false)
 			}
 		}
-		for _, d := range metric.Data {
-			if d.Ts >= from && until <= until {
-				our_el.Link <- *d
-			}
-		}
-		if metric.Data[len(metric.Data)-1].Ts < until {
-			for new_ts := metric.Data[len(metric.Data)-1].Ts + 60; new_ts <= until+60; new_ts += 60 {
-				our_el.Link <- *metrics.NewDatapoint(new_ts, 0.0, false)
-			}
-		}
-	}(our_el, metric)
+	}(our_el)
 	return our_el, nil
 }
 

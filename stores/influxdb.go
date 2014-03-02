@@ -5,6 +5,7 @@ import (
 	"../config"
 	"../metrics"
 	"../util"
+	"fmt"
 	"github.com/influxdb/influxdb-go"
 )
 
@@ -20,50 +21,50 @@ func NewInfluxStore(config config.Main) Store {
 }
 
 func init() {
-	InitFn["influx"] = NewInfluxStore
+	InitFn["influxdb"] = NewInfluxStore
 }
 
 func (i InfluxdbStore) Add(metric metrics.Metric) (err error) {
 	panic("todo")
 }
 
-func (t InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {
+func (i InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {
 
 	our_el = chains.NewChainEl()
 	go func(our_el *chains.ChainEl) {
 		from := <-our_el.Settings
 		until := <-our_el.Settings
 
-		series, err := t.client.Query("select timestamp, value from " + name)
+		query := fmt.Sprintf("select time, value from %s where time > %ds and time < %ds order asc", name, from, until)
+		series, err := i.client.Query(query)
 		if err != nil {
 			panic(err)
 		}
-		//if len(series) != 1 {
-		//    return nil, errors.New("expected 1 result from influxdb, not " + string(len(series)))
-		//}
-		datapoints := make([]*metrics.Datapoint, 0)
-		for _, values := range series[0].Points {
-			ts := values[0]
-			val := values[1]
-			dp := metrics.NewDatapoint(int32(ts.(int32)), val.(float64), true)
-			datapoints = append(datapoints, dp)
-		}
-		metric := metrics.NewMetric(name, datapoints)
-
+		// len(series) can be 0 if there's no datapoints matching the range.
+		// so it's up to the caller to make sure the store is supposed to have the data
 		// if we don't have enough data to cover the requested timespan, fill with nils
-		if metric.Data[0].Ts > from {
-			for new_ts := from; new_ts < metric.Data[0].Ts; new_ts += 60 {
-				our_el.Link <- *metrics.NewDatapoint(new_ts, 0.0, false)
+		if len(series) > 0 {
+			oldest_dp := int32(series[0].Points[0][0].(float64) / 1000)
+			latest_dp := int32(series[len(series)-1].Points[0][0].(float64) / 1000)
+			if oldest_dp > from {
+				for new_ts := from; new_ts < oldest_dp; new_ts += 60 {
+					our_el.Link <- *metrics.NewDatapoint(new_ts, 0.0, false)
+				}
 			}
-		}
-		for _, d := range metric.Data {
-			if d.Ts >= from && until <= until {
-				our_el.Link <- *d
+			for _, values := range series[0].Points {
+				ts := int32(values[0].(float64) / 1000)
+				val := values[2].(float64)
+				dp := metrics.NewDatapoint(ts, val, true)
+				our_el.Link <- *dp
 			}
-		}
-		if metric.Data[len(metric.Data)-1].Ts < until {
-			for new_ts := metric.Data[len(metric.Data)-1].Ts + 60; new_ts <= until+60; new_ts += 60 {
-				our_el.Link <- *metrics.NewDatapoint(new_ts, 0.0, false)
+			if latest_dp < until {
+				for new_ts := latest_dp + 60; new_ts <= until+60; new_ts += 60 {
+					our_el.Link <- *metrics.NewDatapoint(new_ts, 0.0, false)
+				}
+			}
+		} else {
+			for ts := from; ts <= until+60; ts += 60 {
+				our_el.Link <- *metrics.NewDatapoint(ts, 0.0, false)
 			}
 		}
 	}(our_el)
@@ -71,5 +72,12 @@ func (t InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {
 }
 
 func (i InfluxdbStore) Has(name string) (found bool, err error) {
-	panic("todo")
+	series, err := i.client.Query("select time from " + name + " limit 1;")
+	if err != nil {
+		panic(err)
+	}
+	if len(series) > 0 {
+		found = true
+	}
+	return
 }

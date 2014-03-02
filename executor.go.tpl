@@ -13,6 +13,16 @@ func main () {
     until := int32({{.Until}})
     var dep_el chains.ChainEl
 
+    var config config.Main
+    if _, err := toml.DecodeFile("graphite-ng.conf", &config); err != nil {
+        fmt.Println(err)
+        return
+    }
+    if err := stores.Init(config); err != nil {
+        fmt.Println(err)
+        return
+    }
+
 fmt.Print("[")
 {{range .Targets}}
     dep_el = {{.Cmd}}
