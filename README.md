@@ -38,7 +38,7 @@ Other candidates that you could hack on if you're interested
  * Currently only a small set of functions are supported. (see `data.go` and the `functions/` dir.)
  * No wildcards yet
  * Metric identifiers must at least contain 1 dot
- * From/until paramaters can only be in unix timestamp format. (luckily most dashboards abstract this away nicely)
+ * From/until paramaters only supported in "-<x>hours/d/min/.." format or unix timestamps (will be extended a little more)
 
 # How it works
 

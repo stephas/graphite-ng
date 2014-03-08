@@ -5,6 +5,7 @@ import (
 	"./functions"
 	"./stack"
 	"./stores"
+	"./timespec"
 	"bytes"
 	"errors"
 	"fmt"
@@ -13,9 +14,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
 	"text/template"
 	"time"
+	"unicode/utf8"
 )
 
 type Target struct {
@@ -173,21 +174,21 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	from_list := r.Form["from"]
 	if len(from_list) > 0 {
-		from_i64, err := strconv.ParseInt(from_list[0], 10, 32)
+		t, err := timespec.GetTimeStamp(from_list[0])
 		if err != nil {
 			fmt.Fprintf(w, "Error: invalid 'from' spec: "+from_list[0])
 			return
 		}
-		from = int32(from_i64)
+		from = int32(t.Unix())
 	}
 	until_list := r.Form["until"]
 	if len(until_list) > 0 {
-		until_i64, err := strconv.ParseInt(until_list[0], 10, 32)
+		t, err := timespec.GetTimeStamp(until_list[0])
 		if err != nil {
 			fmt.Fprintf(w, "Error: invalid 'until' spec: "+until_list[0])
 			return
 		}
-		until = int32(until_i64)
+		until = int32(t.Unix())
 	}
 	targets_list := r.Form["target"]
 	for _, target := range targets_list {
