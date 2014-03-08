@@ -4,6 +4,7 @@ import (
 	"./config"
 	"./functions"
 	"./stack"
+	"./stores"
 	"bytes"
 	"errors"
 	"fmt"
@@ -201,6 +202,26 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, renderJson(targets_list, from, until))
 	}
 }
+func MetricsListHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "[")
+	prev := false
+	for _, store := range stores.List {
+		list, err := (*store).List()
+		if err != nil {
+			fmt.Fprintf(w, err.Error())
+		} else {
+			for _, metric := range list {
+				if prev {
+					fmt.Fprintf(w, fmt.Sprintf(",\n\"%s\"", metric))
+				} else {
+					fmt.Fprintf(w, fmt.Sprintf("\n\"%s\"", metric))
+				}
+				prev = true
+			}
+		}
+	}
+	fmt.Fprintf(w, "]")
+}
 
 func main() {
 	var config config.Main
@@ -212,7 +233,14 @@ func main() {
 	for k, v := range functions.Functions {
 		fmt.Printf("%-20s -> %s\n", k, v)
 	}
+	fmt.Println("initializing stores")
+	if err := stores.Init(config); err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	http.HandleFunc("/render/", renderHandler)
+	http.HandleFunc("/metrics/index.json", MetricsListHandler)
+	fmt.Println("listening on", config.ListenAddr)
 	http.ListenAndServe(config.ListenAddr, nil)
 }

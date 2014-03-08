@@ -13,7 +13,7 @@ type Store interface {
 	Add(metric metrics.Metric) (err error)
 	Get(name string) (our_el *chains.ChainEl, err error)
 	Has(name string) (found bool, err error)
-	//List(<- chan string)
+	List() (list []string, err error)
 }
 
 var List = make(map[string]*Store)

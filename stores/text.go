@@ -6,6 +6,7 @@ import (
 	"../metrics"
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -86,4 +87,15 @@ func (t TextStore) Has(name string) (found bool, err error) {
 	fmt.Println(t.path(name))
 	_, err = os.Stat(t.path(name))
 	return (err == nil), nil
+}
+func (t TextStore) List() (list []string, err error) {
+	file_info, err := ioutil.ReadDir(t.BasePath)
+	if err != nil {
+		return
+	}
+	list = make([]string, len(file_info))
+	for i, fi := range file_info {
+		list[i] = fi.Name()
+	}
+	return
 }

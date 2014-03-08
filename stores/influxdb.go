@@ -81,3 +81,14 @@ func (i InfluxdbStore) Has(name string) (found bool, err error) {
 	}
 	return
 }
+func (i InfluxdbStore) List() (list []string, err error) {
+	series, err := i.client.Query("list series")
+	if err != nil {
+		return
+	}
+	list = make([]string, len(series))
+	for i, s := range series {
+		list[i] = s.Name
+	}
+	return
+}

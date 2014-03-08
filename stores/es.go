@@ -85,3 +85,7 @@ func (e Es) Has(name string) (found bool, err error) {
 	}
 	return (out.Hits.Total > 0), nil
 }
+
+func (e Es) List() (list []string, err error) {
+	return make([]string, 0), nil
+}
