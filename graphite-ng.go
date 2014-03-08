@@ -71,7 +71,7 @@ func generateTarget(target_str string) (target Target, err error) {
 			next = tokens[i+1]
 		}
 		if next == "(" {
-   		// a function is starting
+			// a function is starting
 			if in_fn != "" {
 				prior_in_fn.Push(in_fn)
 			}
