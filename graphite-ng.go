@@ -44,20 +44,29 @@ func generateCommand(target string) string {
 		if tok == token.EOF {
 			break
 		}
+		//fmt.Println(pos, tok, lit)
 		tokens = append(tokens, *NewToken(fset.Position(pos), tok, lit))
 	}
 	cmd := ""
+	allowed_in_metric := func(t token.Token) bool {
+		if t == token.PERIOD || t == token.SUB || t == token.ASSIGN || t == token.QUO {
+			return true
+		}
+		return false
+	}
 	for i, t := range tokens {
 		switch t.tok {
 		case token.IDENT:
+			prev := tokens[i-1].tok
+			next := tokens[i+1].tok
 			// a function is starting
-			if tokens[i+1].tok == token.LPAREN {
+			if next == token.LPAREN {
 				cmd += "functions." + functions.Functions[t.lit]
 				// this is the beginning of a target string
-			} else if tokens[i+1].tok == token.PERIOD && tokens[i-1].tok != token.PERIOD {
+			} else if !allowed_in_metric(prev) && allowed_in_metric(next) {
 				cmd += "ReadMetric(\"" + t.lit
 				// this is the end of a target string
-			} else if tokens[i-1].tok == token.PERIOD && tokens[i+1].tok != token.PERIOD {
+			} else if allowed_in_metric(prev) && !allowed_in_metric(next) {
 				cmd += t.lit + "\")"
 			} else {
 				cmd += t.lit
@@ -70,9 +79,11 @@ func generateCommand(target string) string {
 			cmd += "."
 		case token.COMMA:
 			cmd += ",\n"
-		case token.INT:
+		case token.INT, token.FLOAT:
 			cmd += t.lit
-		case token.FLOAT:
+		case token.SUB:
+			cmd += "-"
+		case token.ASSIGN, token.QUO:
 			cmd += t.lit
 		}
 	}
