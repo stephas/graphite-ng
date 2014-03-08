@@ -240,6 +240,7 @@ func main() {
 		return
 	}
 
+	http.HandleFunc("/render", renderHandler)
 	http.HandleFunc("/render/", renderHandler)
 	http.HandleFunc("/metrics/index.json", MetricsListHandler)
 	fmt.Println("listening on", config.ListenAddr)
