@@ -6,8 +6,8 @@ import (
 )
 
 func init() {
-	Functions["sum"] = "ProcessSum"
-	Functions["sumSeries"] = "ProcessSum"
+	Functions["sum"] = []string{"ProcessSum"}
+	Functions["sumSeries"] = []string{"ProcessSum"}
 }
 
 // like with graphite, it is assumed datapoints from different inputs are time synchronized

@@ -3,11 +3,11 @@ package main
 import (
 	"./config"
 	"./functions"
+	"./stack"
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"go/scanner"
-	"go/token"
 	"math/rand"
 	"net/http"
 	"os"
@@ -17,91 +17,121 @@ import (
 	"time"
 )
 
-type Token struct {
-	pos token.Position
-	tok token.Token
-	lit string
+type Target struct {
+	Name string
+	Cmd  string
 }
 
-func NewToken(pos token.Position, tok token.Token, lit string) *Token {
-	return &Token{pos: pos, tok: tok, lit: lit}
+type Params struct {
+	From    int32
+	Until   int32
+	Targets []Target
 }
 
-func (t *Token) String() string {
-	return fmt.Sprintf("%s\t%s\t%q", t.pos, t.tok, t.lit)
-}
-
-func generateCommand(target string) string {
-	src := []byte(target)
-	var s scanner.Scanner
-	fset := token.NewFileSet()
-	file := fset.AddFile("", fset.Base(), len(src))
-	s.Init(file, src, nil /* no error handler */, scanner.ScanComments)
-
-	tokens := make([]Token, 50)
-	for {
-		pos, tok, lit := s.Scan()
-		if tok == token.EOF {
-			break
-		}
-		//fmt.Println(pos, tok, lit)
-		tokens = append(tokens, *NewToken(fset.Position(pos), tok, lit))
-	}
-	cmd := ""
-	allowed_in_metric := func(t token.Token) bool {
-		if t == token.PERIOD || t == token.SUB || t == token.ASSIGN || t == token.QUO {
-			return true
-		}
-		return false
-	}
-	for i, t := range tokens {
-		switch t.tok {
-		case token.IDENT:
-			prev := tokens[i-1].tok
-			next := tokens[i+1].tok
-			// a function is starting
-			if next == token.LPAREN {
-				cmd += "functions." + functions.Functions[t.lit]
-				// this is the beginning of a target string
-			} else if !allowed_in_metric(prev) && allowed_in_metric(next) {
-				cmd += "ReadMetric(\"" + t.lit
-				// this is the end of a target string
-			} else if allowed_in_metric(prev) && !allowed_in_metric(next) {
-				cmd += t.lit + "\")"
-			} else {
-				cmd += t.lit
+// FieldsFuncWithDelim is like strings.FieldsFunc except it also returns
+// the delimiters
+func FieldsFuncWithDelim(s string, f func(r rune) bool) []string {
+	var l []string
+	var sp int
+	for i, r := range s {
+		if f(r) {
+			if sp < i {
+				l = append(l, s[sp:i])
 			}
-		case token.LPAREN:
-			cmd += "(\n"
-		case token.RPAREN:
-			cmd += ")"
-		case token.PERIOD:
-			cmd += "."
-		case token.COMMA:
-			cmd += ",\n"
-		case token.INT, token.FLOAT:
-			cmd += t.lit
-		case token.SUB:
-			cmd += "-"
-		case token.ASSIGN, token.QUO:
-			cmd += t.lit
+			l = append(l, string(r))
+			sp = i + utf8.RuneLen(r)
 		}
 	}
-	return cmd
+	if sp < len(s) {
+		l = append(l, s[sp:])
+	}
+	return l
+}
+
+// generateCommand parses an input target such as
+// "alias(foo(bar baz unit=Mb/s ip=127.0.0.1 qux,12,foo2(5.0, somestr)), my alias name)"
+// into the correct golang code, with intermidate tokens like:
+// ["alias" "(" "foo" "(" "bar baz unit=Mb/s ip=127.0.0.1 qux" "," "12" "," "foo2"
+// "(" "5.0" "," " somestr" ")" ")" "," " my alias name" ")"]
+func generateTarget(target_str string) (target Target, err error) {
+	tokens := FieldsFuncWithDelim(target_str, func(r rune) bool {
+		return r == '(' || r == ')' || r == ','
+	})
+	target.Name = target_str
+	cmd := ""
+	in_fn := ""
+	arg_no := 0
+	prior_arg_no := new(stack.Stack)
+	prior_in_fn := new(stack.Stack)
+	for i, token := range tokens {
+		next := ""
+		if i < len(tokens)-1 {
+			next = tokens[i+1]
+		}
+		if next == "(" {
+   		// a function is starting
+			if in_fn != "" {
+				prior_in_fn.Push(in_fn)
+			}
+			if arg_no != 0 {
+				prior_arg_no.Push(arg_no)
+			}
+			in_fn = token
+			arg_no = 0
+			if _, ok := functions.Functions[in_fn]; !ok {
+				return target, errors.New(fmt.Sprintf("ERROR: invalid syntax. did not recognize function '%s'", in_fn))
+			}
+			cmd += "functions." + functions.Functions[token][0]
+		} else if token == ")" {
+			// a function is ending
+			// do we need to do any actions right now for certain functions?
+			if in_fn == "alias" {
+				target.Name = tokens[i-1]
+			}
+			cmd += ")"
+			fn := prior_in_fn.Pop()
+			if fn == nil {
+				in_fn = ""
+			} else {
+				in_fn = fn.(string)
+			}
+			an := prior_arg_no.Pop()
+			if an == nil {
+				arg_no = 0
+			} else {
+				arg_no = an.(int)
+			}
+		} else if token == "(" {
+			cmd += "(\n"
+		} else if token == "," {
+			cmd += ",\n"
+			// token is an argument
+		} else {
+			arg_no += 1
+			arg_type := "metric"
+			if arg_no < len(functions.Functions[in_fn]) {
+				arg_type = functions.Functions[in_fn][arg_no]
+			}
+			if arg_type == "metric" {
+				cmd += "ReadMetric(\"" + token + "\")"
+			} else if arg_type == "string" {
+				cmd += "\"" + token + "\""
+			} else {
+				cmd += token
+			}
+		}
+	}
+	target.Cmd = cmd
+	return
 }
 func renderJson(targets_list []string, from int32, until int32) string {
-	type Target struct {
-		Query string
-		Cmd   string
-	}
-	type Params struct {
-		From    int32
-		Until   int32
-		Targets []Target
-	}
 	targets := make([]Target, 0)
-	for _, target := range targets_list {
-		targets = append(targets, Target{target, generateCommand(target)})
+	for _, target_str := range targets_list {
+		target, err := generateTarget(target_str)
+		if err != nil {
+			return err.Error()
+		}
+		targets = append(targets, target)
 	}
 	params := Params{from, until, targets}
 	t, err := template.ParseFiles("executor.go.tpl")

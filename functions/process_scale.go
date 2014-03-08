@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	Functions["scale"] = "ProcessScale"
+	Functions["scale"] = []string{"ProcessScale", "metric", "float"}
 }
 
 // todo: allow N inputs and outputs

@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	Functions["derivative"] = "ProcessDerivative"
+	Functions["derivative"] = []string{"ProcessDerivative", "metric"}
 }
 func ProcessDerivative(dep_el chains.ChainEl) (our_el chains.ChainEl) {
 	our_el = *chains.NewChainEl()

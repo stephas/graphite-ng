@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	Functions["printStandardJson"] = "OutPrintStandardJson"
+	Functions["printStandardJson"] = []string{"OutPrintStandardJson", "metric", "int"}
 }
 
 func OutPrintStandardJson(dep_el chains.ChainEl, until int32) {

@@ -1,3 +1,3 @@
 package functions
 
-var Functions = make(map[string]string)
+var Functions = make(map[string][]string)

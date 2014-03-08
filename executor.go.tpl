@@ -28,7 +28,7 @@ fmt.Print("[")
     dep_el = {{.Cmd}}
     dep_el.Settings <- from
     dep_el.Settings <- until
-    fmt.Printf("{\"target\": \"{{.Query}}\", \"datapoints\": [")
+    fmt.Printf("{\"target\": \"{{.Name}}\", \"datapoints\": [")
     functions.OutPrintStandardJson(dep_el, until)
     fmt.Printf("]},\n") // last shouldn't have extra comma.
 {{end}}
