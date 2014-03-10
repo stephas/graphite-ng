@@ -28,7 +28,7 @@ Other candidates that you could hack on if you're interested
 * [ceres](https://github.com/graphite-project/ceres) (good for legacy data, discouraged otherwise)
 
 
-# Omissions and limitations
+# Omissions and deliberate limitations
 
  * Only the json output, not the png renderer. (because [client side
    rendering](https://github.com/vimeo/timeserieswidget/) is way better, it can give you interactive graphs)
@@ -37,7 +37,6 @@ Other candidates that you could hack on if you're interested
    better than the very basic graphite events thing)
  * Currently only a small set of functions are supported. (see `data.go` and the `functions/` dir.)
  * No wildcards yet
- * Metric identifiers must at least contain 1 dot
 
 # How it works
 
