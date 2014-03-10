@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"text/template"
 	"time"
 	"unicode/utf8"
@@ -59,7 +60,7 @@ func generateTarget(target_str string) (target Target, err error) {
 	tokens := FieldsFuncWithDelim(target_str, func(r rune) bool {
 		return r == '(' || r == ')' || r == ','
 	})
-	target.Name = target_str
+	target.Name = strings.Trim(target_str, "\"'")
 	cmd := ""
 	in_fn := ""
 	arg_no := 0
@@ -88,7 +89,7 @@ func generateTarget(target_str string) (target Target, err error) {
 			// a function is ending
 			// do we need to do any actions right now for certain functions?
 			if in_fn == "alias" {
-				target.Name = tokens[i-1]
+				target.Name = strings.Trim(tokens[i-1], "\"'")
 			}
 			cmd += ")"
 			fn := prior_in_fn.Pop()
@@ -115,11 +116,11 @@ func generateTarget(target_str string) (target Target, err error) {
 				arg_type = functions.Functions[in_fn][arg_no]
 			}
 			if arg_type == "metric" {
-				cmd += "ReadMetric(\"" + token + "\")"
+				cmd += "ReadMetric(\"" + strings.Trim(token, "\"'") + "\")"
 			} else if arg_type == "string" {
-				cmd += "\"" + token + "\""
+				cmd += "\"" + strings.Trim(token, "\"'") + "\""
 			} else {
-				cmd += token
+				cmd += strings.Trim(token, "\"'")
 			}
 		}
 	}
