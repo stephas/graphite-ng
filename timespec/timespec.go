@@ -9,19 +9,29 @@ import (
 )
 
 func GetTimeStamp(spec string) (timestamp time.Time, err error) {
+
+	if spec == "now" {
+		return time.Now(), nil
+	}
+
+	if spec == "yesterday" {
+		return time.Now().Add(-time.Duration(time.Hour * 24)), nil
+	}
+
 	// is it a unix timestamp?
 	i64, err := strconv.ParseInt(spec, 10, 32)
-	if err != nil {
+	if err == nil {
 		return time.Unix(i64, 0), nil
 	}
-	now := time.Now()
+
+	// is it something like "-2mins"
 	re := regexp.MustCompile("(\\+|-)?([0-9]+)(second|minute|min|m|hour|h|day|d|D|week|w|month|mo)s?")
 	matches := re.FindStringSubmatch(spec)
 	if len(matches) == 0 {
 		err = errors.New(fmt.Sprintf("could not parse '%s'", spec))
 		return
 	}
-	duration_i64, _ := strconv.ParseUint(matches[1]+matches[2], 10, 32)
+	duration_i64, _ := strconv.ParseInt(matches[1]+matches[2], 10, 32)
 	var duration time.Duration
 	// not always technically correct, but it doesn't need to be
 	// because we just want timestamps that are more or less correct
@@ -40,6 +50,5 @@ func GetTimeStamp(spec string) (timestamp time.Time, err error) {
 	case "month", "mo":
 		duration = time.Hour * 24 * 30
 	}
-	timestamp = now.Add(duration * time.Duration(duration_i64))
-	return timestamp, nil
+	return time.Now().Add(duration * time.Duration(duration_i64)), nil
 }

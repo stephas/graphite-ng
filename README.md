@@ -38,7 +38,6 @@ Other candidates that you could hack on if you're interested
  * Currently only a small set of functions are supported. (see `data.go` and the `functions/` dir.)
  * No wildcards yet
  * Metric identifiers must at least contain 1 dot
- * From/until paramaters only supported in "-<x>hours/d/min/.." format or unix timestamps (will be extended a little more)
 
 # How it works
 
@@ -100,6 +99,10 @@ different way; and then call those functions from your target string.
 	resolution is at each point in time.
 * Be mathematically/logically correct by default ("nil+123" should be "nil" not
   "123", though the functions could get a "sloppyness" argument)
+
+# API
+
+* from / until args: unix timestamp or strings such as "now", "yesterday", "-2d", "-5weeks", "6hours", etc
 
 # Community
   meet us in `#graphite-ng` on freenode
