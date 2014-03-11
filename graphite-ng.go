@@ -225,6 +225,14 @@ func MetricsListHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "]")
 }
 
+func corsHeaders(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type, origin, authorization, accept")
+		fn(w, r)
+	}
+}
 func main() {
 	var config config.Main
 	if _, err := toml.DecodeFile("graphite-ng.conf", &config); err != nil {
@@ -241,9 +249,9 @@ func main() {
 		return
 	}
 
-	http.HandleFunc("/render", renderHandler)
-	http.HandleFunc("/render/", renderHandler)
-	http.HandleFunc("/metrics/index.json", MetricsListHandler)
+	http.HandleFunc("/render", corsHeaders(renderHandler))
+	http.HandleFunc("/render/", corsHeaders(renderHandler))
+	http.HandleFunc("/metrics/index.json", corsHeaders(MetricsListHandler))
 	fmt.Println("listening on", config.ListenAddr)
 	http.ListenAndServe(config.ListenAddr, nil)
 }
