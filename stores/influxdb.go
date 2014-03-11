@@ -44,14 +44,15 @@ func (i InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {
 		// so it's up to the caller to make sure the store is supposed to have the data
 		// if we don't have enough data to cover the requested timespan, fill with nils
 		if len(series) > 0 {
-			oldest_dp := int32(series[0].Points[0][0].(float64) / 1000)
-			latest_dp := int32(series[len(series)-1].Points[0][0].(float64) / 1000)
+			points := series[0].Points
+			oldest_dp := int32(points[0][0].(float64) / 1000)
+			latest_dp := int32(points[len(points)-1][0].(float64) / 1000)
 			if oldest_dp > from {
 				for new_ts := from; new_ts < oldest_dp; new_ts += 60 {
 					our_el.Link <- *metrics.NewDatapoint(new_ts, 0.0, false)
 				}
 			}
-			for _, values := range series[0].Points {
+			for _, values := range points {
 				ts := int32(values[0].(float64) / 1000)
 				val := values[2].(float64)
 				dp := metrics.NewDatapoint(ts, val, true)
