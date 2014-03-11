@@ -31,10 +31,10 @@ Other candidates that you could hack on if you're interested
 # Omissions and deliberate limitations
 
  * Only the json output, not the png renderer. (because [client side
-   rendering](https://github.com/vimeo/timeserieswidget/) is way better, it can give you interactive graphs)
+   rendering, using something like timeserieswidget](https://github.com/vimeo/timeserieswidget/) is way better, it can give you interactive graphs)
  * No web UI (because there are plenty of graphite dashboards out there)
  * No events system ([anthracite](https://github.com/Dieterbe/anthracite/) is
-   better than the very basic graphite events thing)
+   better than the very basic graphite events thing). And many renderers such as timeserieswidget can show events from anthracite and elasticsearch.
  * Currently only a small set of functions are supported. (see `data.go` and the `functions/` dir.)
  * No wildcards yet
 
