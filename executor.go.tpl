@@ -23,14 +23,17 @@ func main () {
         return
     }
 
-fmt.Print("[")
-{{range .Targets}}
+{{range $i, $e := .Targets}}
+{{if $i}}
+fmt.Printf("]},\n")
+{{else}}
+fmt.Printf("[\n")
+{{end}}
     dep_el = {{.Cmd}}
     dep_el.Settings <- from
     dep_el.Settings <- until
     fmt.Printf("{\"target\": \"{{.Name}}\", \"datapoints\": [")
     functions.OutPrintStandardJson(dep_el, until)
-    fmt.Printf("]},\n") // last shouldn't have extra comma.
 {{end}}
-fmt.Printf("]")
+fmt.Printf("]}\n]")
 }
