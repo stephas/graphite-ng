@@ -18,7 +18,7 @@ assures HA and heals itself in case of disk of node failures.
 Currently implemented:
 
 * text (for reads only)
-* influxdb (for reads, you have to do your own ingestion for now)
+* influxdb (for reads, influxdb can ingest metrics via the graphite protocol natively so there's no need for a carbon daemon)
 
 Other candidates that you could hack on if you're interested
 
