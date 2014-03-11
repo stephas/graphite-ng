@@ -25,7 +25,7 @@ func GetTimeStamp(spec string) (timestamp time.Time, err error) {
 	}
 
 	// is it something like "-2mins"
-	re := regexp.MustCompile("(\\+|-)?([0-9]+)(second|minute|min|m|hour|h|day|d|D|week|w|month|mo)s?")
+	re := regexp.MustCompile("(\\+|-)?([0-9]+)(second|minute|min|m|hour|h|day|d|D|week|w|month|mo)?s?")
 	matches := re.FindStringSubmatch(spec)
 	if len(matches) == 0 {
 		err = errors.New(fmt.Sprintf("could not parse '%s'", spec))
@@ -37,7 +37,7 @@ func GetTimeStamp(spec string) (timestamp time.Time, err error) {
 	// because we just want timestamps that are more or less correct
 	// to get a given timerange
 	switch matches[3] {
-	case "second":
+	case "second", "s", "":
 		duration = time.Second
 	case "minute", "min", "m":
 		duration = time.Minute
