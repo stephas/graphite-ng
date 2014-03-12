@@ -84,7 +84,6 @@ func (t TextStore) Get(name string) (our_el *chains.ChainEl, err error) {
 }
 
 func (t TextStore) Has(name string) (found bool, err error) {
-	fmt.Println(t.path(name))
 	_, err = os.Stat(t.path(name))
 	return (err == nil), nil
 }
@@ -95,7 +94,8 @@ func (t TextStore) List() (list []string, err error) {
 	}
 	list = make([]string, len(file_info))
 	for i, fi := range file_info {
-		list[i] = fi.Name()
+		name := fi.Name()
+		list[i] = name[:len(name)-4]
 	}
 	return
 }
