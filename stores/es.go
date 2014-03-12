@@ -50,7 +50,7 @@ func (e Es) Get(name string) (our_el *chains.ChainEl, err error) {
 		// { "bool": { "must": [ {"term": ... }, {"range": ...}] }}
 
 		// TODO: sorting?
-		out, err := core.SearchRequest(true, "carbon-es", "datapoint", qry, "", 0)
+		out, err := core.SearchRequest("carbon-es", "datapoint", map[string]interface{}{}, qry)
 		if err != nil {
 			panic(fmt.Sprintf("error reading ES for %s: %s", name, err.Error()))
 
@@ -79,7 +79,7 @@ func (e Es) Get(name string) (our_el *chains.ChainEl, err error) {
 }
 
 func (e Es) Has(name string) (found bool, err error) {
-	out, err := core.SearchUri("carbon-es", "datapoint", fmt.Sprintf("metric:%s&size=1", name), "", 0)
+	out, err := core.SearchUri("carbon-es", "datapoint", map[string]interface{}{"q": fmt.Sprintf("metric:%s", name), "size": "1"})
 	if err != nil {
 		return false, errors.New(fmt.Sprintf("error checking ES for %s: %s", name, err.Error()))
 	}
