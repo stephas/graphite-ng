@@ -8,6 +8,7 @@ import (
 	"./timespec"
 	"bytes"
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"math/rand"
@@ -19,6 +20,17 @@ import (
 	"time"
 	"unicode/utf8"
 )
+
+var (
+	configFile = flag.String("config", "graphite-ng.conf", "config file path")
+	help       = flag.Bool("h", false, "show help text")
+)
+
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "\nOptions:\n")
+	flag.PrintDefaults()
+}
 
 type Target struct {
 	Name string
@@ -235,7 +247,14 @@ func corsHeaders(fn http.HandlerFunc) http.HandlerFunc {
 }
 func main() {
 	var config config.Main
-	if _, err := toml.DecodeFile("graphite-ng.conf", &config); err != nil {
+	flag.Usage = usage
+	flag.Parse()
+
+	if *help {
+		flag.Usage()
+		os.Exit(1)
+	}
+	if _, err := toml.DecodeFile(*configFile, &config); err != nil {
 		fmt.Println(err)
 		return
 	}
