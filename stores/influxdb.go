@@ -14,7 +14,12 @@ type InfluxdbStore struct {
 }
 
 func NewInfluxStore(config config.Main) Store {
-	c := influxdb.ClientConfig{config.StoreInflux.Host, config.StoreInflux.Username, config.StoreInflux.Password, config.StoreInflux.Database}
+	c := influxdb.ClientConfig{
+		Host:     config.StoreInflux.Host,
+		Username: config.StoreInflux.Username,
+		Password: config.StoreInflux.Password,
+		Database: config.StoreInflux.Database,
+	}
 	client, err := influxdb.NewClient(&c)
 	util.DieIfError(err)
 	return InfluxdbStore{client}
