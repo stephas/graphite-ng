@@ -1,10 +1,10 @@
 package stores
 
 import (
-	"../chains"
-	"../config"
-	"../metrics"
 	"errors"
+	"github.com/graphite-ng/graphite-ng/chains"
+	"github.com/graphite-ng/graphite-ng/config"
+	"github.com/graphite-ng/graphite-ng/metrics"
 )
 
 var InitFn = make(map[string]func(config config.Main) Store)

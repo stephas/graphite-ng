@@ -1,11 +1,11 @@
 package stores
 
 import (
-	"../chains"
-	"../config"
-	"../metrics"
-	"../util"
 	"fmt"
+	"github.com/graphite-ng/graphite-ng/chains"
+	"github.com/graphite-ng/graphite-ng/config"
+	"github.com/graphite-ng/graphite-ng/metrics"
+	"github.com/graphite-ng/graphite-ng/util"
 	"github.com/influxdb/influxdb-go"
 )
 
