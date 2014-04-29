@@ -1,16 +1,16 @@
 package main
 
 import (
-	"./config"
-	"./functions"
-	"./stack"
-	"./stores"
-	"./timespec"
 	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/graphite-ng/graphite-ng/config"
+	"github.com/graphite-ng/graphite-ng/functions"
+	"github.com/graphite-ng/graphite-ng/stack"
+	"github.com/graphite-ng/graphite-ng/stores"
+	"github.com/graphite-ng/graphite-ng/timespec"
 	"math/rand"
 	"net/http"
 	"os"
