@@ -3,12 +3,12 @@ package stores
 import (
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/graphite-ng/graphite-ng/chains"
 	"github.com/graphite-ng/graphite-ng/config"
 	"github.com/graphite-ng/graphite-ng/metrics"
-	"github.com/mattbaird/elastigo/api"
-	"github.com/mattbaird/elastigo/core"
-	"strconv"
+	"github.com/mattbaird/elastigo/lib"
 )
 
 type Es struct {
@@ -16,12 +16,14 @@ type Es struct {
 	es_port        int
 	es_max_pending int
 	in_port        int
+	conn           *elastigo.Conn
 }
 
 func NewEs(config config.Main) Store {
-	api.Domain = config.StoreES.Host
-	api.Port = string(config.StoreES.Port)
-	es := Es{config.StoreES.Host, config.StoreES.Port, config.StoreES.MaxPending, config.StoreES.CarbonPort}
+	conn := elastigo.NewConn()
+	conn.Domain = config.StoreES.Host
+	conn.Port = strconv.Itoa(config.StoreES.Port)
+	es := Es{config.StoreES.Host, config.StoreES.Port, config.StoreES.MaxPending, config.StoreES.CarbonPort, conn}
 	return es
 }
 
@@ -50,7 +52,7 @@ func (e Es) Get(name string) (our_el *chains.ChainEl, err error) {
 		// { "bool": { "must": [ {"term": ... }, {"range": ...}] }}
 
 		// TODO: sorting?
-		out, err := core.SearchRequest("carbon-es", "datapoint", map[string]interface{}{}, qry)
+		out, err := e.conn.Search("carbon-es", "datapoint", map[string]interface{}{}, qry)
 		if err != nil {
 			panic(fmt.Sprintf("error reading ES for %s: %s", name, err.Error()))
 
@@ -79,7 +81,7 @@ func (e Es) Get(name string) (our_el *chains.ChainEl, err error) {
 }
 
 func (e Es) Has(name string) (found bool, err error) {
-	out, err := core.SearchUri("carbon-es", "datapoint", map[string]interface{}{"q": fmt.Sprintf("metric:%s", name), "size": "1"})
+	out, err := e.conn.SearchUri("carbon-es", "datapoint", map[string]interface{}{"q": fmt.Sprintf("metric:%s", name), "size": "1"})
 	if err != nil {
 		return false, errors.New(fmt.Sprintf("error checking ES for %s: %s", name, err.Error()))
 	}
