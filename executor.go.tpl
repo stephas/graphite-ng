@@ -1,10 +1,10 @@
 package main
 import (
     "fmt"
-	"./chains"
-    "./functions"
-    "./config"
-    "./stores"
+    "github.com/graphite-ng/graphite-ng/chains"
+    "github.com/graphite-ng/graphite-ng/functions"
+    "github.com/graphite-ng/graphite-ng/config"
+    "github.com/graphite-ng/graphite-ng/stores"
     "github.com/BurntSushi/toml"
 )
 
