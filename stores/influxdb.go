@@ -78,7 +78,7 @@ func (i InfluxdbStore) Get(name string) (our_el *chains.ChainEl, err error) {
 }
 
 func (i InfluxdbStore) Has(name string) (found bool, err error) {
-	series, err := i.client.Query("select time from " + name + " limit 1;")
+	series, err := i.client.Query("select * from " + name + " limit 1;")
 	if err != nil {
 		panic(err)
 	}
@@ -88,7 +88,7 @@ func (i InfluxdbStore) Has(name string) (found bool, err error) {
 	return
 }
 func (i InfluxdbStore) List() (list []string, err error) {
-	series, err := i.client.Query("list series")
+	series, err := i.client.Query("select * from /.*/ limit 1")
 	if err != nil {
 		return
 	}
@@ -96,5 +96,7 @@ func (i InfluxdbStore) List() (list []string, err error) {
 	for i, s := range series {
 		list[i] = s.Name
 	}
-	return
+
+        fmt.Printf("found %d keys in influxdb\n", len(list))
+	return list, nil
 }
